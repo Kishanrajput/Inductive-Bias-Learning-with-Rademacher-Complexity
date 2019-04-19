@@ -70,9 +70,9 @@ def lossfunction(pval, realval):
 
 
 
-def runTest(data, labels, testdata, testlabels):
+def runTest(rawdata, rawlabels):
 
-    factor = 3 * math.sqrt(math.log(2/0.4)/(2000))
+    factor = 3 * math.sqrt(2*math.log(2/0.1)/(250))
 
     alpha = 0.0001
     hidden_layer_sizes = []
@@ -82,12 +82,25 @@ def runTest(data, labels, testdata, testlabels):
             t = [j] * i
             sublist.append(tuple(t))
         hidden_layer_sizes.append(sublist)
-    data = [data] * 10
-    labels = [labels] * 10
-    testdata = [testdata] * 10
-    testlabels = [testlabels] * 10
+    data = []
+    labels = []
+    testdata = []
+    testlabels = []
+    for i in range(10):
+        data.append(rawdata[i*25:(i+1)*25])
+        labels.append(rawlabels[i*25:(i+1)*25])
+        testdata.append(rawdata[(i+1)*25:(i+2)*25])
+        testlabels.append(rawlabels[(i+1)*25:(i+2)*25])
+        #print("data", rawdata[i*50:(i+1)*50])
+        #print("labels", rawlabels[i*50:(i+1)*50])
+        #print("testdata", rawtestdata[(i+1)*25:(i+2)*25])
+        #print("testlabels", rawtestlabels[(i+1)*25:(i+2)*25])
+
+
     Hhnpredictions = []
     HhnErrPredictions = []
+    count = 0
+    print(count)
     for i in range(len(hidden_layer_sizes)):
         hnpredictions = []
         hnErrpredictions = []
@@ -95,8 +108,11 @@ def runTest(data, labels, testdata, testlabels):
             clf = MLPClassifier(solver='adam', alpha=alpha, hidden_layer_sizes=hsize, max_iter=5000, random_state=1)
             npredictions = []
             nErrPredictions = []
+            nErrPredictions2 = []
             for row in range(len(data)):
                 clf.fit(data[row], labels[row])
+                count += 1
+                print(count)
                 prediction = clf.predict(data[row])
                 npredictions.append(prediction)
                 prediction = clf.predict(testdata[row])
@@ -105,6 +121,7 @@ def runTest(data, labels, testdata, testlabels):
             hnErrpredictions.append(nErrPredictions)
         Hhnpredictions.append(hnpredictions)
         HhnErrPredictions.append(hnErrpredictions)
+
     #print(Hhnpredictions)
     sigma = []
     for row in range(len(data)):
@@ -112,11 +129,11 @@ def runTest(data, labels, testdata, testlabels):
         #print("sigmalist---", sigmalist)
         sigma.append(sigmalist)
 
-    RofH, Herrorlist = ERCofErrorFunction(labels, Hhnpredictions, sigma, 10, 100, 10, 10)
+    RofH, Herrorlist = ERCofErrorFunction(labels, Hhnpredictions, sigma, 10, 25, 10, 10)
     print("RofH --- ", round(RofH, 2))
     print("Empirical Error list--- ", Herrorlist)
     print("factor --- ", round(factor,2))
-    ActualError = ErrorofH(HhnErrPredictions, testlabels, 10, 10, 10, 50)
+    ActualError = ErrorofH(HhnErrPredictions, testlabels, 10, 10, 10, 25)
     print("Error on Test data --- ", ActualError)
     print("Epsilon -- ", round(RofH+factor, 2))
     for i in range(len(ActualError)):
@@ -163,12 +180,12 @@ def Rademacher_Coeff(number, random_seed=0):
 
 print(math.inf)
 iris = datasets.load_breast_cancer()
-data = iris.data[:100]
+data = iris.data
 #print(len(data))
-labels = iris.target[:100]
-Testdata = iris.data[100:150]
-Testlabels = iris.target[100:150]
-runTest(data, labels, Testdata, Testlabels)
+labels = iris.target
+#Testdata = iris.data[100:150]
+#Testlabels = iris.target[100:150]
+runTest(data, labels)
 
 
 
